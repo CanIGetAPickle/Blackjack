@@ -37,15 +37,13 @@ class Deck
 
     total = 0
     card_values.each do |val|
-      if val == "A"
+      if val == "Ace"
         total += 11
       else
         total += (val.to_i == 0 ? 10 : val.to_i)
       end
     end
-
-    #correct for Aces
-    card_values.select{ |value| value == "A" }.count.times do
+    card_values.select{ |value| value == "Ace" }.count.times do
       if total <= 21
         break
       else
