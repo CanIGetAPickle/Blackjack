@@ -22,7 +22,7 @@ class Deck
   end
 end
   
-class Hand < Deck
+module Hand
 
   def total
     card_values = cards.map{ |card| card[0] }
@@ -46,7 +46,8 @@ class Hand < Deck
   end
 end
   
-class Player < Hand
+class Player
+  include Hand
   attr_accessor :cards
 
   def initialize
