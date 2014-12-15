@@ -98,7 +98,7 @@ class Game
     puts
   end
 
-  def winner?
+def check_for_winner
     if player.total > dealer.total && player.total <= 21
       puts
       puts ">>> Congratulations, you win!".bg_cyan
@@ -193,7 +193,7 @@ class Game
     check_for_blackjack_or_bust
     player_turn
     dealer_turn
-    winner?
+    check_for_winner
   end
 end
 
