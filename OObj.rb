@@ -1,22 +1,11 @@
 class String
-  def black;          "\033[30m#{self}\033[0m" end
-  def red;            "\033[31m#{self}\033[0m" end
-  def green;          "\033[32m#{self}\033[0m" end
-  def brown;          "\033[33m#{self}\033[0m" end
-  def blue;           "\033[34m#{self}\033[0m" end
-  def magenta;        "\033[35m#{self}\033[0m" end
-  def cyan;           "\033[36m#{self}\033[0m" end
-  def gray;           "\033[37m#{self}\033[0m" end
-  def bg_black;       "\033[40m#{self}\033[0m" end
-  def bg_red;         "\033[41m#{self}\033[0m" end
-  def bg_green;       "\033[42m#{self}\033[0m" end
-  def bg_brown;       "\033[43m#{self}\033[0m" end
-  def bg_blue;        "\033[44m#{self}\033[0m" end
-  def bg_magenta;     "\033[45m#{self}\033[0m" end
-  def bg_cyan;        "\033[46m#{self}\033[0m" end
-  def bg_gray;        "\033[47m#{self}\033[0m" end
-  def bold;           "\033[1m#{self}\033[22m" end
-  def reverse_color;  "\033[7m#{self}\033[27m" end
+  def red;     "\033[31m#{self}\033[0m" end
+  def green;   "\033[32m#{self}\033[0m" end
+  def magenta; "\033[35m#{self}\033[0m" end
+  def cyan;    "\033[36m#{self}\033[0m" end
+  def bg_blue; "\033[44m#{self}\033[0m" end
+  def bg_red;  "\033[41m#{self}\033[0m" end
+  def bg_cyan; "\033[46m#{self}\033[0m" end
 end
 
 class Deck
@@ -31,6 +20,9 @@ class Deck
   def shuffle!
    cards.shuffle!
   end
+end
+  
+class Hand < Deck
 
   def total
     card_values = cards.map{ |card| card[0] }
@@ -54,20 +46,11 @@ class Deck
   end
 end
   
-class Player < Deck
+class Player < Hand
   attr_accessor :cards
 
   def initialize
     @cards = []
-  end
-
-  def show_hand
-    print ">>> "
-    cards.each do |card|
-      print "[#{card[0]} of #{card[1]}] "
-    end
-    puts "--- Total: #{total} ---"
-    puts
   end
 
   def add_card(new_card)
@@ -84,7 +67,6 @@ class Game
     @dealer = Player.new
   end
 
-
   def initial_deal
     2.times do
       player.add_card(deck.cards.pop)
@@ -92,21 +74,38 @@ class Game
     end
   end
 
-  def show_cards
+  def show_player_cards
     puts
     puts ">>> Your cards:".magenta
-    player.show_hand
+    print ">>> "
+    player.cards.each { |card| print "[#{card[0]} of #{card[1]}] " }
+    print "--- Total: #{player.total} ---"
     puts
-    puts ">>> Dealer cards:".green
-    dealer.show_hand
+  end
+
+  def show_dealer_cards
+    puts
+    puts ">>> Dealer's cards:".green
+    print ">>> First card hidden. [#{dealer.cards[1][0]} of #{dealer.cards[1][1]}] "
+    puts
+  end
+
+  def reveal_dealer_cards
+    print ">>> Dealer's cards: ".green
+    dealer.cards.each { |card| print "[#{card[0]} of #{card[1]}] " }
+    print "for a total of #{dealer.total}."
+    puts
   end
 
   def winner?
     if player.total > dealer.total && player.total <= 21
+      puts
       puts ">>> Congratulations, you win!".bg_cyan
     elsif dealer.total > player.total && dealer.total <= 21
+      puts
       puts ">>> Sorry, you lose!".bg_cyan
     elsif player.total == dealer.total && player.total <= 21 && dealer.total <= 21
+      puts
       puts ">>> It's a tie!".bg_cyan
     end
     play_again?
@@ -114,16 +113,22 @@ class Game
 
   def check_for_blackjack_or_bust
     if player.total == 21
+      puts
       puts ">>> Blackjack! You win!".bg_blue
       play_again?
     elsif player.total > 21
+      puts
       puts ">>> Busted! You lose!".bg_red
       play_again?
     elsif dealer.total == 21
-      puts ">>> Dealer hit blackjack! You lose!".bg_blue
+      reveal_dealer_cards
+      puts
+      puts ">>> Dealer hit blackjack! You lose!".bg_red
       play_again?
     elsif dealer.total > 21
-      puts ">>> Dealer busted! You win!".bg_red
+      reveal_dealer_cards
+      puts
+      puts ">>> Dealer busted with a total of #{dealer.total}! You win!".bg_blue
       play_again?
     end
   end
@@ -134,7 +139,6 @@ class Game
       puts
       puts ">>> Your turn. Choose a number: (1) Hit (2) Stay".cyan
       response = gets.chomp.to_i
-
       if response == 1
         new_card = deck.cards.pop
         puts ">>> Dealing you a new card: [#{new_card[0]} of #{new_card[1]}]".magenta
@@ -143,6 +147,7 @@ class Game
         check_for_blackjack_or_bust
       elsif response == 2
         puts ">>> You chose to stay at #{player.total}.".magenta
+        puts
         break
       else
         puts ">>> Invalid input. Please pick 1 or 2.".red
@@ -154,21 +159,22 @@ class Game
   def dealer_turn
     check_for_blackjack_or_bust
     puts ">>> Dealer's turn...".cyan
+    puts
     while dealer.total < 17
       new_card = deck.cards.pop
       puts ">>> Dealing card to dealer: #{new_card[0]} of #{new_card[1]}".green
       dealer.add_card(new_card)
-      puts ">>> Dealer total is now: #{dealer.total}".green
       check_for_blackjack_or_bust
     end
-
-    puts ">>> Dealer stays at #{dealer.total}.".green
+    puts ">>> Dealer stays.".green
+    reveal_dealer_cards
   end
 
   def play_again?
+    puts
     puts ">>> Would you like to play again? (1) Yes (2) No".cyan
     if gets.chomp == '1'
-      deck = Deck.new
+      @deck = Deck.new
       player.cards = []
       dealer.cards = []
       play
@@ -181,7 +187,8 @@ class Game
   def play
     deck.shuffle!
     initial_deal
-    show_cards
+    show_dealer_cards
+    show_player_cards
     check_for_blackjack_or_bust
     player_turn
     dealer_turn
