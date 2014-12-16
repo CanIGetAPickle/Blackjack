@@ -175,7 +175,7 @@ def check_for_winner
     puts
     puts ">>> Would you like to play again? (1) Yes (2) No".cyan
     if gets.chomp == '1'
-      @deck = Deck.new
+      self.deck = Deck.new
       player.cards = []
       dealer.cards = []
       play
