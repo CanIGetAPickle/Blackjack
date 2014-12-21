@@ -152,7 +152,6 @@ def check_for_winner
         break
       else
         puts ">>> Invalid input. Please pick 1 or 2.".red
-        player_turn
       end
     end
   end
